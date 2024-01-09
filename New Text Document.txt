@@ -1,0 +1,412 @@
+import java.util.*;
+public class VaccineApp {
+ String[][] patientDetails = new String[0][7];
+ public String[][] AllergyTable = {
+ {"ID", "Allergy", "Recommended Vaccine Type"},
+ {"1", "Polyethylene Glycol (PEG)", "AstraZeneca"},
+ {"2", "Polysorbate 80 (PS80)", " AstraZeneca"},
+ {"3", "Gelatin", "Pfizer"}
+ };
+ public void patients() {
+ // Get user input until the user decides to stop
+ boolean continueInput = true;
+ Scanner scanner = new Scanner(System.in);
+ while (continueInput) {
+ // Display menu
+ System.out.println("Menu:");
+ System.out.println("1. New Entry");
+ System.out.println("2. Generate Repor");
+ // Get user choice
+ System.out.print("Enter your choice (1 or 2): ");
+ String choice = scanner.nextLine();
+ switch (choice) {
+ case "1":
+ // Get user input for a new entry
+ String[] userEntry = getUserEntry(scanner);
+ // Add user entry to the 2D array
+ patientDetails = addEntry(patientDetails, userEntry);
+ break;
+ case "2":
+ // Exit the program
+ continueInput = false;
+ break;
+ default:
+ System.out.println("Invalid choice. Please enter 1 or 2.");
+ }
+ }
+ }
+ private static String[] getUserEntry(Scanner scanner) {
+ String[] userEntry = new String[7];
+ // Validate and get user input for ID
+ userEntry[0] = getValidInput(scanner, "Enter ID (must be a positive integer): ", "^[1-9]\\d*$");
+ // Validate and get user input for Name
+ userEntry[1] = getValidInput(scanner, "Enter Name (cannot be empty): ", ".+");
+ // Validate and get user input for Last Name
+ userEntry[2] = getValidInput(scanner, "Enter Last Name (cannot be empty): ", ".+");
+ // Validate and get user input for Age
+ userEntry[3] = getValidInput(scanner, "Enter Age (must be a positive integer): ", "^[1-9]\\d*$");
+ // Validate and get user input for Allergy
+ String allergy = getValidInput(scanner, "Enter Allergy (choose from: PEG, PS80, Gelatin): ",
+ new String[]{"PEG", "PS80", "Gelatin"});
+ userEntry[4] = allergy;
+ // Recommend the appropriate vaccine based on the allergy
+ String recommendedVaccine = recommendVaccine(allergy);
+ System.out.println("Recommended Vaccine: " + recommendedVaccine);
+ // Validate and get user input for Vaccine Type
+ String[] allowedVaccines; 
+ if (recommendedVaccine.equals("Pfizer")) {
+ allowedVaccines = new String[]{"Pfizer"};
+ } else {
+ allowedVaccines = new String[]{"AstraZeneca"};
+ }
+ userEntry[5] = getValidInput(scanner, "Enter Vaccine Type (" + recommendedVaccine + "): ", allowedVaccines);
+ // Validate and get user input for Date
+ userEntry[6] = getValidInput(scanner, "Enter Date (MM-DD-YYYY format): ", "\\d{2}-\\d{2}-\\d{4}");
+ return userEntry;
+ }
+
+ // Method to recommend the appropriate vaccine based on the allergy
+ private static String recommendVaccine(String allergy) {
+ switch (allergy) {
+ case "Gelatin":
+ return "Pfizer";
+ case "PEG":
+ case "PS80":
+ return "AstraZeneca";
+ default:
+ return "Unknown"; // In case of an unknown allergy
+ }
+ }
+ // Method to count patients by allergy type
+ private void countPatientsByAllergy() {
+ // Create a map to store the count of patients for each allergy type
+ Map<String, Integer> allergyCount = new HashMap<>();
+ // Create a set to keep track of unique patient IDs
+ Set<String> uniquePatientIDs = new HashSet<>();
+
+ for (String[] patient : patientDetails) {
+ String patientID = patient[0];
+ String allergy = patient[4];
+
+ // Check if the patient ID is not in the set of unique patient IDs
+ if (uniquePatientIDs.add(patientID)) {
+ allergyCount.put(allergy, allergyCount.getOrDefault(allergy, 0) + 1);
+ }
+ }
+
+ System.out.println("Number of patients by allergy type:");
+ for (Map.Entry<String, Integer> entry : allergyCount.entrySet()) {
+ System.out.println(entry.getKey() + ": " + entry.getValue());
+ }
+ }
+
+ // Method to get valid input based on a list of allowed options
+ private static String getValidInput(Scanner scanner, String prompt, String[] allowedOptions) {
+ String input;
+ boolean isValid;
+ do {
+ System.out.print(prompt);
+ input = scanner.nextLine();
+ isValid = Arrays.asList(allowedOptions).contains(input);
+ if (!isValid) {
+ System.out.println("Invalid input. Please choose from the provided options.");
+ }
+ } while (!isValid);
+ return input;
+ }
+
+ // Method to get valid input based on a regular expression pattern
+ private static String getValidInput(Scanner scanner, String prompt, String pattern) {
+ String input;
+ boolean isValid;
+ do {
+ System.out.print(prompt);
+ input = scanner.nextLine();
+ isValid = input.matches(pattern);
+ if (!isValid) {
+ System.out.println("Invalid input. Please try again.");
+ }
+ } while (!isValid);
+ return input;
+ }
+
+ // Function to add a user entry to the 2D array
+ private static String[][] addEntry(String[][] array, String[] entry) {
+ String[][] newArray = new String[array.length + 1][7];
+ System.arraycopy(array, 0, newArray, 0, array.length);
+ newArray[array.length] = entry;
+ return newArray;
+ }
+
+
+
+ public void VaccineCounter() {
+
+ int pfizerCounter = 0;
+
+ int astrazenecaCounter = 0;
+
+ String pfizerType = "Pfizer";
+
+ String astrazenecaType = "AstraZeneca";
+
+ Set<String> countedPatients = new HashSet<>(); // Use a set to store unique patient IDs
+
+ for (int i = 0; i < patientDetails.length; i++) {
+
+ String patientID = patientDetails[i][0];
+
+ String vaccineType = patientDetails[i][5];
+
+ if (!countedPatients.contains(patientID)) {
+
+ // Check if the patient has received the specified vaccine type
+
+ if (vaccineType.equals(pfizerType)) {
+
+ pfizerCounter++;
+
+ } else if (vaccineType.equals(astrazenecaType)) {
+
+ astrazenecaCounter++;
+
+ }
+
+ countedPatients.add(patientID); // Add the patient ID to the set
+
+ }
+
+ }
+
+ System.out.println("Number of patients with Pfizer vaccine: " + pfizerCounter);
+
+ System.out.println("Number of patients with AstraZeneca vaccine: " + astrazenecaCounter);
+
+ }
+
+
+
+ public void sortByVaccineType(String[][] patients, String vaccineType) {
+	    Set<String> uniquePatientIDs = new HashSet<>();
+
+	    // Filter patients with the specified vaccine type
+	    String[][] filteredPatients = Arrays.stream(patients)
+	            .filter(p -> vaccineType.equals(p[5]) && uniquePatientIDs.add(p[0]))
+	            .toArray(String[][]::new);
+
+	    // Insertion Sort filtered patients by last name
+	    for (int i = 1; i < filteredPatients.length; i++) {
+	        String[] currentPatient = filteredPatients[i];
+	        int j = i - 1;
+
+	        // Compare last names
+	        while (j >= 0 && filteredPatients[j][2].compareTo(currentPatient[2]) > 0) {
+	            filteredPatients[j + 1] = filteredPatients[j];
+	            j--;
+	        }
+
+	        filteredPatients[j + 1] = currentPatient;
+	    }
+
+	    // Display sorted patients
+	    System.out.println("Patients with " + vaccineType + " vaccine, sorted by last name:");
+	    System.out.println("ID\tFirst Name\tLast Name\tAge\tAllergy\t\tVaccine\t\tDate");
+
+	    for (String[] patient : filteredPatients) {
+	        System.out.printf("%s\t%s\t\t%s\t\t%s\t%s\t\t%s\t\t%s%n",
+	                patient[0], patient[1], patient[2], patient[3], patient[4], patient[5], patient[6]);
+	    }
+	}
+
+
+
+ public void sortPatientsByAge() {
+	    // Insertion Sort patients by age in descending order
+	    for (int i = 1; i < patientDetails.length; i++) {
+	        String[] currentPatient = patientDetails[i];
+	        int j = i - 1;
+
+	        // Compare ages in descending order
+	        while (j >= 0 && Integer.parseInt(patientDetails[j][3]) < Integer.parseInt(currentPatient[3])) {
+	            patientDetails[j + 1] = patientDetails[j];
+	            j--;
+	        }
+
+	        patientDetails[j + 1] = currentPatient;
+	    }
+
+	    // Create a list to store the sorted patients
+	    List<String[]> sortedPatients = new ArrayList<>();
+
+	    // Use a set to track unique patient IDs
+	    Set<String> uniquePatientIDs = new HashSet<>();
+
+	    // Iterate over the sorted patients and add unique IDs to the set
+	    for (String[] patient : patientDetails) {
+	        if (uniquePatientIDs.add(patient[0])) {
+	            sortedPatients.add(patient);
+	        }
+	    }
+
+	    // Display headers
+	    System.out.println("Patients sorted by age (from older to younger):");
+	    System.out.println("ID\tFirst Name\tLast Name\tAge\tAllergy\t\tVaccine\t\tDate");
+
+	    // Display sorted patients
+	    for (String[] patient : sortedPatients) {
+	        System.out.printf("%s\t%s\t\t%s\t\t%s\t%s\t\t%s\t\t%s%n",
+	                patient[0], patient[1], patient[2], patient[3], patient[4], patient[5], patient[6]);
+	    }
+	}
+
+
+ public void listPatientsWithThreeDoses() {
+
+ System.out.println("Patients who have completed three doses of the vaccine:");
+
+ System.out.println("ID\tFirst Name\tLast Name\tAge\tAllergy\t\tVaccine\t\tDoses");
+
+
+
+ Set<String> printedIDs = new HashSet<>(); // To track already printed IDs
+
+
+
+ for (int i = 0; i < patientDetails.length; i++) {
+
+ String patientID = patientDetails[i][0];
+
+ String firstName = patientDetails[i][1];
+
+ String lastName = patientDetails[i][2];
+
+ String age = patientDetails[i][3];
+
+ String allergy = patientDetails[i][4];
+
+ String vaccineType = patientDetails[i][5];
+
+
+
+ // Check if the patient has completed three doses and has not been printed before
+
+ if (countDoses(patientID, vaccineType) == 3 && printedIDs.add(patientID)) {
+
+ System.out.printf("%s\t%s\t\t%s\t\t%s\t%s\t%s\t\t%s%n",
+
+ patientID, firstName, lastName, age, allergy, vaccineType, countDoses(patientID, vaccineType));
+
+ }
+
+ }
+
+ }
+
+
+
+ // Method to count doses for a specific patient and vaccine type
+
+ private int countDoses(String patientID, String vaccineType) {
+
+ int doseCount = 0;
+
+
+
+ for (int i = 0; i < patientDetails.length; i++) {
+
+ String currentID = patientDetails[i][0];
+
+ String currentVaccineType = patientDetails[i][5];
+
+
+
+ // Check if the ID and vaccine type match
+
+ if (patientID.equals(currentID) && vaccineType.equals(currentVaccineType)) {
+
+ doseCount++;
+
+ }
+
+ }
+
+
+
+ return doseCount;
+
+ }
+
+ public void ElderlyThreeDoses() {
+
+ System.out.println("Elderly patients (aged 70 or above) with fewer than three doses:");
+
+ System.out.println("ID\tFirst Name\tLast Name\tAge\tAllergy\t\tVaccine\t\tDoses");
+
+
+
+ Set<String> printedIDs = new HashSet<>(); // To track already printed IDs
+
+
+
+ for (int i = 0; i < patientDetails.length; i++) {
+
+	    String[] patient = patientDetails[i];
+
+	    String patientID = patient[0];
+	    String firstName = patient[1];
+	    String lastName = patient[2];
+	    int age = Integer.parseInt(patient[3]);
+	    String allergy = patient[4];
+	    String vaccineType = patient[5];
+
+	 // Check if the patient is aged 70 or above, received fewer than three doses, and has not been printed before
+	    if (age >= 70 && countDoses(patientID, vaccineType) < 3 && printedIDs.add(patientID)) {
+
+	        System.out.printf("%s\t%s\t\t%s\t\t%s\t%s\t\t%s\t\t%s%n",
+	            patientID, firstName, lastName, age, allergy, vaccineType, countDoses(patientID, vaccineType));
+	    }
+	}
+ }
+
+
+ public static void main(String[] args) {
+
+ Scanner sc = new Scanner(System.in);
+
+ VaccineApp v = new VaccineApp();
+
+ v.patients();
+
+ v.VaccineCounter();
+
+ String vaccineType;
+
+ // Get user input for vaccine type (Pfizer or AstraZeneca)
+
+ do {
+
+ System.out.print("Enter the vaccine type for sorting patients (Pfizer or AstraZeneca):");
+
+ vaccineType = sc.nextLine().trim();
+
+ } while (!"Pfizer".equalsIgnoreCase(vaccineType) && !"AstraZeneca".equalsIgnoreCase(vaccineType));
+
+ v.sortByVaccineType(v.patientDetails, vaccineType);
+
+ // Sort and display patients by age
+
+ v.sortPatientsByAge();
+
+ // Call the new method to count and display patients by allergy type
+
+ v.countPatientsByAllergy();
+
+ // Call the method to list patients with three doses
+
+ v.listPatientsWithThreeDoses();
+
+ v.ElderlyThreeDoses();
+
+ }
+
+}
